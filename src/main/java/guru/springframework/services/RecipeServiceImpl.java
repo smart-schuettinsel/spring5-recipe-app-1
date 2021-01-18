@@ -4,7 +4,9 @@ import guru.springframework.commands.RecipeCommand;
 import guru.springframework.converters.RecipeCommandToRecipe;
 import guru.springframework.converters.RecipeToRecipeCommand;
 import guru.springframework.domain.Recipe;
+import guru.springframework.exceptions.NotFoundException;
 import guru.springframework.repositories.RecipeRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +14,10 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Created by jt on 6/13/17.
+ */
+@Slf4j
 @Service
 public class RecipeServiceImpl implements RecipeService {
 
@@ -27,6 +33,8 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     public Set<Recipe> getRecipes() {
+        log.debug("I'm in the service");
+
         Set<Recipe> recipeSet = new HashSet<>();
         recipeRepository.findAll().iterator().forEachRemaining(recipeSet::add);
         return recipeSet;
@@ -38,7 +46,7 @@ public class RecipeServiceImpl implements RecipeService {
         Optional<Recipe> recipeOptional = recipeRepository.findById(l);
 
         if (!recipeOptional.isPresent()) {
-            throw new RuntimeException("Recipe Not Found!");
+            throw new NotFoundException("Recipe Not Found. For ID value: " + l.toString());
         }
 
         return recipeOptional.get();
@@ -56,6 +64,7 @@ public class RecipeServiceImpl implements RecipeService {
         Recipe detachedRecipe = recipeCommandToRecipe.convert(command);
 
         Recipe savedRecipe = recipeRepository.save(detachedRecipe);
+        log.debug("Saved RecipeId:" + savedRecipe.getId());
         return recipeToRecipeCommand.convert(savedRecipe);
     }
 
